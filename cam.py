@@ -100,3 +100,4 @@ cv2.destroyAllWindows()
 # Todo
 # 1. fixed camera
 # 2. fix contour counting
+# 3. adjust screw and nut size
