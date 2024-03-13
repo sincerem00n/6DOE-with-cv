@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import time
 
 cam = cv2.VideoCapture(0)
-n = 10
+n = 5
 path = 'src/'
 while True:
     for i in range(n):
@@ -13,7 +13,7 @@ while True:
             print("Failed to capture frame")
             break
         cv2.imshow('frame', frame)
-        cv2.imwrite(f"{path}image_{i+10}.jpg", frame)
+        cv2.imwrite(f"{path}image_{i+35}.jpg", frame)
         time.sleep(1)
     if cv2.waitKey(1) == ord('q'):
         break

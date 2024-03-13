@@ -3,19 +3,57 @@ import cv2
 import matplotlib.pyplot as plt
 import time
 
-err = 10
-
-def classify(rect):
+# classify
+def NutScrew(rect):
     w, h = rect[1]
-    diff = abs(w-h)
+    dx = abs(w-h)
+    # print('dx:',dx)
+    err = 10
+    if dx < err:
+        # check nut type
+        m4nut = 25
+        m6nut = 35
+        if w < m4nut+err and w > m4nut-err:
+            t = 'nut'
+            s = 'm4'
+            l = 'None'
+            return t, s, l
+        elif w < m6nut+err and w > m6nut-err:
+            t = 'nut'
+            s = 'm6'
+            l = 'None'
+            return t, s, l
+    elif dx > err:
+        # check screw type
+        m4w = 10
+        m6w = 20
+        werr = 5
+        l18 = 85
+        l35 = 145
+        lerr = 20
 
-    if diff < err:
-        return 'nut'
-    elif diff > err:
-        return 'screw'
-    else:
-        return 'unknown'
-
+        if w < m4w+werr and w > m4w-werr:
+            if h < l18+lerr and h > l18-lerr:
+                t = 'screw'
+                s = 'm4'
+                l = '18'
+                return t, s, l
+            elif h < l35+lerr and h > l35-lerr:
+                t = 'screw'
+                s = 'm4'
+                l = '35'
+                return t, s, l
+        elif w < m6w+werr and w > m6w-werr:
+            if h < l18+lerr and h > l18-lerr:
+                t = 'screw'
+                s = 'm6'
+                l = '18'
+                return t, s, l
+            elif h < l35+lerr and h > l35-lerr:
+                t = 'screw'
+                s = 'm6'
+                l = '35'
+                return t, s, l
 
 
 cap = cv2.VideoCapture(0)
@@ -32,9 +70,9 @@ while True:
     # Our operations on the frame come here
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    img_resize = gray[95:650, 650:1510]
+    img_resize = gray[215:780, 650:1450]
 
-    _, img_tres = cv2.threshold(img_resize, 125, 255, cv2.THRESH_TOZERO)
+    _, img_tres = cv2.threshold(img_resize, 135, 255, cv2.THRESH_TOZERO)
 
     # closing
     ksize = 7
@@ -49,7 +87,7 @@ while True:
     
     # draw contours
     contours, _ = cv2.findContours(bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contours = [i for i in contours if cv2.contourArea(i) >= 500]
+    contours = [i for i in contours if cv2.contourArea(i) >= 400]
     print(len(contours))
     for i in range(len(contours)):
         a = cv2.contourArea(contours[i])
@@ -70,11 +108,6 @@ while True:
         box = np.int0(box)
         cv2.drawContours(mask, [box], 0, (0, 255, 255), 2)
 
-    # classify
-    for i in range(len(contours)):
-        rect = cv2.minAreaRect(contours[i])
-        print(f'obj{i}:', classify(rect))
-
     img2 = cv2.merge([img_resize, img_resize, img_resize])
     for i in range(len(contours)):
         x, y, w, h = cv2.boundingRect(contours[i])
@@ -83,7 +116,15 @@ while True:
         rect = cv2.minAreaRect(contours[i])
         box = cv2.boxPoints(rect)
         box = np.int0(box)
-        cv2.putText(img2, classify(rect), (x, y+h), font, 1, (0,255,0), 2, cv2.LINE_AA)
+        if rect[1][0] > rect[1][1]:
+            rect = (rect[0], (rect[1][1], rect[1][0]), rect[2])
+        result = NutScrew(rect)
+        if result is not None:
+            t, s, l = result
+            text = f'{t} {s} {l}'
+        else:
+            text = 'None'
+        cv2.putText(img2, text, (x, y+h), font, 0.7, (0,255,0), 2, cv2.LINE_AA)
 
     # plt.imshow(img2, cmap='gray')
 
@@ -91,7 +132,7 @@ while True:
     # cv2.imshow('frame', frame)
     cv2.imshow('mask', mask)
     cv2.imshow('frame', img2)
-    time.sleep(1)
+    # time.sleep(1)
     if cv2.waitKey(1) == ord('q'):
         break
 # When everything done, release the capture
