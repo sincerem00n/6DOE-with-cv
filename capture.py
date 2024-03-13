@@ -13,7 +13,7 @@ while True:
             print("Failed to capture frame")
             break
         cv2.imshow('frame', frame)
-        cv2.imwrite(f"{path}image_{i}.jpg", frame)
+        cv2.imwrite(f"{path}image_{i+10}.jpg", frame)
         time.sleep(1)
     if cv2.waitKey(1) == ord('q'):
         break

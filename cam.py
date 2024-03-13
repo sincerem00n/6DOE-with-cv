@@ -3,18 +3,19 @@ import cv2
 import matplotlib.pyplot as plt
 import time
 
-screw_w = 40
-nut_w = 60
 err = 10
 
 def classify(rect):
     w, h = rect[1]
-    if w > screw_w and w < screw_w+err and h > screw_w :
-        return 'screw'
-    elif w > nut_w and w < nut_w+err:
+    diff = abs(w-h)
+
+    if diff < err:
         return 'nut'
+    elif diff > err:
+        return 'screw'
     else:
         return 'unknown'
+
 
 
 cap = cv2.VideoCapture(0)
@@ -31,11 +32,9 @@ while True:
     # Our operations on the frame come here
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    img_resize = cv2.resize(gray, (0, 0), fx=0.5, fy=0.5)
-    # print(img_resize.shape)
-    # plt.imshow(img_resize, cmap='gray') 
+    img_resize = gray[95:650, 650:1510]
 
-    _, img_tres = cv2.threshold(img_resize, 135, 255, cv2.THRESH_TOZERO_INV)
+    _, img_tres = cv2.threshold(img_resize, 125, 255, cv2.THRESH_TOZERO)
 
     # closing
     ksize = 7
@@ -50,6 +49,7 @@ while True:
     
     # draw contours
     contours, _ = cv2.findContours(bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = [i for i in contours if cv2.contourArea(i) >= 500]
     print(len(contours))
     for i in range(len(contours)):
         a = cv2.contourArea(contours[i])
@@ -88,6 +88,7 @@ while True:
     # plt.imshow(img2, cmap='gray')
 
     # Display the resulting frame
+    # cv2.imshow('frame', frame)
     cv2.imshow('mask', mask)
     cv2.imshow('frame', img2)
     time.sleep(1)
