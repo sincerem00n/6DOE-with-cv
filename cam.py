@@ -25,7 +25,7 @@ def NutScrew(rect):
             return t, s, l
     elif dx > err:
         # check screw type
-        m4w = 10
+        m4w = 12
         m6w = 20
         werr = 5
         l18 = 85
